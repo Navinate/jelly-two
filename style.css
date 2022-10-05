@@ -1,0 +1,19 @@
+* {
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+#remove {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  margin: 10px;
+  color: white;
+  background-color: darkblue;
+  padding: 10px;
+  font-size: 40pt;
+  border-radius: 5% / 25%;
+  border: none;
+}
