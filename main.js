@@ -1,9 +1,6 @@
 import "./style.css";
 import { createNoise3D } from "simplex-noise";
-Matter.use(
-  "matter-wrap", // not required, just for demo
-  "matter-attractors" // PLUGIN_NAME
-);
+Matter.use("matter-wrap");
 
 const noise = createNoise3D();
 
@@ -31,17 +28,17 @@ var render = Render.create({
   options: {
     width: width,
     height: height,
-    showAngleIndicator: false,
+    wireframes: false,
     background: "#000000",
   },
 });
 
 Composite.add(engine.world, [
   // walls
-  Bodies.rectangle(width / 2, -40, width, 100, { isStatic: true }),
-  Bodies.rectangle(width / 2, height - 20, width, 100, { isStatic: true }),
-  Bodies.rectangle(width, height / 2, 100, height, { isStatic: true }),
-  Bodies.rectangle(-20, height / 2, 100, width, { isStatic: true }),
+  //Bodies.rectangle(width / 2, -40, width, 100, { isStatic: true }),
+  //Bodies.rectangle(width / 2, height - 20, width, 100, { isStatic: true }),
+  //Bodies.rectangle(width, height / 2, 100, height, { isStatic: true }),
+  //Bodies.rectangle(-20, height / 2, 100, width, { isStatic: true }),
 ]);
 
 Render.run(render);
@@ -52,27 +49,73 @@ Runner.run(runner, engine);
 
 //On mouse click create a jelly and add it to the jelly array
 var jellyOptions = {
-  stiffness: 0.1,
+  stiffness: 0.05,
   render: { type: "line", anchors: false },
   plugin: {
     wrap: {
       min: { x: 0, y: 0 },
-      max: { x: 900, y: 900 },
+      max: { x: render.canvas.width, y: render.canvas.width },
     },
   },
 };
 let app = document.querySelector("canvas");
 app.addEventListener("mousedown", (e) => {
-  let size = 40; //Math.random() * 60 + 20;
-  let inertia = 1; //Math.random() * 1 + 0.1;
-  var a = Composites.stack(e.clientX, e.clientY, 2, 2, 5, 5, function (x, y) {
-    let circle = Bodies.circle(x, y, size);
+  let row = Math.random() * 4 + 1;
+  let col = Math.random() * 4 + 1;
+  let r = Math.random() * 255;
+  let g = Math.random() * 255;
+  let b = Math.random() * 255;
+  let rgb = [r, g, b];
+  var hex = rgb.map(function (x) {
+    x = parseInt(x).toString(16); //Convert to a base16 string
+    return x.length == 1 ? "0" + x : x; //Add zero if we get only one character
+  });
+  let size = Math.random() * 40 + 20;
+  let inertia = 1 / size;
+  var a = Composites.stack(e.clientX, e.clientY, 2, 2, 15, 15, function (x, y) {
+    let circle = Bodies.circle(x, y, size, {
+      render: {
+        fillStyle: "#" + hex.join(""),
+        wireframes: false,
+      },
+    });
+    circle.plugin.wrap = {
+      min: {
+        x: -7000,
+        y: -6500,
+      },
+      max: {
+        x: render.canvas.width,
+        y: render.canvas.height,
+      },
+    };
+
     Body.setInertia(circle, inertia);
-    circle.render.fillStyle = "#FF0000";
     return circle;
   });
 
+  a.plugin.wrap = {
+    min: {
+      x: 0,
+      y: 0,
+    },
+    max: {
+      x: render.canvas.width,
+      y: render.canvas.height,
+    },
+  };
+
   var jelly = genMesh(a, 2, 2, jellyOptions);
+  jelly.plugin.wrap = {
+    min: {
+      x: 0,
+      y: 0,
+    },
+    max: {
+      x: render.canvas.width,
+      y: render.canvas.height,
+    },
+  };
 
   jellies.push(jelly);
   Composite.add(engine.world, jelly);
@@ -99,7 +142,12 @@ function genMesh(composite, columns, rows, options) {
       Composite.addConstraint(
         composite,
         Matter.Constraint.create(
-          Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)
+          Common.extend(
+            { bodyA: bodyA, bodyB: bodyB },
+            {
+              render: { visible: false },
+            }
+          )
         )
       );
     }
@@ -111,27 +159,22 @@ function genMesh(composite, columns, rows, options) {
         Composite.addConstraint(
           composite,
           Constraint.create(
-            Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)
+            Common.extend(
+              { bodyA: bodyA, bodyB: bodyB },
+              {
+                render: { visible: false },
+              }
+            )
           )
         );
       }
     }
   }
   composite.label += " Mesh";
-  composite.plugin.wrap = {
-    min: {
-      x: 0,
-      y: 0,
-    },
-    max: {
-      x: render.canvas.width,
-      y: render.canvas.height,
-    },
-  };
   return composite;
 }
 
-let forceStrength = 0.0002;
+let forceStrength = 0.001;
 Events.on(runner, "beforeUpdate", updateLoop);
 function updateLoop(e) {
   for (let i = 0; i < jellies.length; i++) {
@@ -139,13 +182,16 @@ function updateLoop(e) {
     for (let j = 0; j < currentComp.bodies.length; j++) {
       let currentBody = currentComp.bodies[j];
       let pos = currentBody.position;
-      let angle = noise(pos.x, pos.y, e.timestamp);
+      let angle = scale(noise(pos.x, pos.y, 1), -1, 1, 0, 360);
       let vec = Matter.Vector.create(
         Math.cos(angle) * forceStrength,
         Math.sin(angle) * forceStrength
       );
-      console.log(angle);
       Body.applyForce(currentBody, pos, vec);
     }
   }
+}
+
+function scale(number, inMin, inMax, outMin, outMax) {
+  return ((number - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 }

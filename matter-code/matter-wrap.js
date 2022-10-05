@@ -164,7 +164,7 @@
              * @returns {void} No return value.
              */
             wrap: function wrap(body, bounds) {
-              console.log("wrap is called");
+              console.log("wrap called");
               var x = null,
                 y = null;
 
