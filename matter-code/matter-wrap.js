@@ -164,7 +164,7 @@
              * @returns {void} No return value.
              */
             wrap: function wrap(body, bounds) {
-              console.log("wrap called");
+              console.log(body);
               var x = null,
                 y = null;
 
@@ -192,8 +192,8 @@
 
               if (x !== null || y !== null) {
                 Matter.Body.setPosition(body, {
-                  x: x || body.position.x,
-                  y: y || body.position.y,
+                  x: x !== null ? x : body.position.x,
+                  y: y !== null ? y : body.position.y,
                 });
               }
             },

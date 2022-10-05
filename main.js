@@ -35,10 +35,10 @@ var render = Render.create({
 
 Composite.add(engine.world, [
   // walls
-  //Bodies.rectangle(width / 2, -40, width, 100, { isStatic: true }),
-  //Bodies.rectangle(width / 2, height - 20, width, 100, { isStatic: true }),
-  //Bodies.rectangle(width, height / 2, 100, height, { isStatic: true }),
-  //Bodies.rectangle(-20, height / 2, 100, width, { isStatic: true }),
+  Bodies.rectangle(width / 2, -40, width, 100, { isStatic: true }),
+  Bodies.rectangle(width / 2, height - 20, width, 100, { isStatic: true }),
+  Bodies.rectangle(width, height / 2, 100, height, { isStatic: true }),
+  Bodies.rectangle(-20, height / 2, 100, width, { isStatic: true }),
 ]);
 
 Render.run(render);
@@ -81,8 +81,8 @@ app.addEventListener("mousedown", (e) => {
     });
     circle.plugin.wrap = {
       min: {
-        x: -7000,
-        y: -6500,
+        x: 0,
+        y: 0,
       },
       max: {
         x: render.canvas.width,
@@ -94,7 +94,7 @@ app.addEventListener("mousedown", (e) => {
     return circle;
   });
 
-  a.plugin.wrap = {
+  /* a.plugin.wrap = {
     min: {
       x: 0,
       y: 0,
@@ -103,10 +103,10 @@ app.addEventListener("mousedown", (e) => {
       x: render.canvas.width,
       y: render.canvas.height,
     },
-  };
+  }; */
 
   var jelly = genMesh(a, 2, 2, jellyOptions);
-  jelly.plugin.wrap = {
+  /*  jelly.plugin.wrap = {
     min: {
       x: 0,
       y: 0,
@@ -115,7 +115,7 @@ app.addEventListener("mousedown", (e) => {
       x: render.canvas.width,
       y: render.canvas.height,
     },
-  };
+  }; */
 
   jellies.push(jelly);
   Composite.add(engine.world, jelly);
@@ -182,10 +182,17 @@ function updateLoop(e) {
     for (let j = 0; j < currentComp.bodies.length; j++) {
       let currentBody = currentComp.bodies[j];
       let pos = currentBody.position;
-      let angle = scale(noise(pos.x, pos.y, 1), -1, 1, 0, 360);
+      let angle = scale(
+        noise(pos.x * 0.0001, pos.y * 0.0001, 1),
+        -1,
+        1,
+        0,
+        360
+      );
+      let radian = (180 * angle) / Math.PI;
       let vec = Matter.Vector.create(
-        Math.cos(angle) * forceStrength,
-        Math.sin(angle) * forceStrength
+        Math.cos(radian) * forceStrength,
+        Math.sin(radian) * forceStrength
       );
       Body.applyForce(currentBody, pos, vec);
     }
